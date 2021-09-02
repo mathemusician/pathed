@@ -34,13 +34,59 @@ filedir/'..'/'path'/'to'/'file.txt'
 # Methods
 
 ### filedir
+returns your current file directory as a str-like object
+```
+from pathed import filedir
+
+print(filedir) # prints current file directory
+```
 
 ### cwd
+returns your current working directory as a str-like object
+```
+from pathed import cwd
 
-### importfile
+print(cwd) # prints current working directory
+```
 
-### importdir
+### importfile(path, module)
+Parameters:
+ - path: str or str-like object with path to directory
+ - module: module that will have attributes appended to it
 
+returns file functions, classes, and global variables from a python file
+```
+from pathed import importfile
+
+hard_to_import_file = importfile(cwd/'..'/'..'/'file.py')
+```
+
+### importdir(path, module)
+Parameters:
+ - path: str or str-like object with path to directory
+ - module: module that will have attributes appended to it
+
+imports *.py files from directory
+
+returns class with attributes named after *.py files
+```
+from pathed import importdir
+
+hard_to_import_dir = importdir(cwd/'..'/'..')
+```
+
+### Path(*args, custom)
+Parameters:
+ - *args: objects that can be turned into a string
+ - custom: boolean
+           if True, will append args to root
+           if False, will append args to current file directory
+```
+from pathed import Path
+
+Path('a')              # /path/to/filedir/a
+Path('a', custom=True) # /a
+```
 
 ### Path.isdir()
 returns True if Path is a directory

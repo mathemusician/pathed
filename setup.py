@@ -49,11 +49,11 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(),
     install_requires=[],
-    url="https://pypi.org/project/opt/",
+    url="https://pypi.org/project/pathed/",
     project_urls={
-        "Documentation": "https://pypi.org/project/op/",
-        "Code": "https://github.com/mathemusician/op",
-        "Issue tracker": "https://github.com/mathemusician/op/issues",
+        "Documentation": "https://pypi.org/project/pathed/",
+        "Code": "https://github.com/mathemusician/pathed",
+        "Issue tracker": "https://github.com/mathemusician/pathed/issues",
     },
     keywords=["python", "pathing", "path", "pathed"],
     classifiers=[
