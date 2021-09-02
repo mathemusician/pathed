@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 import os
 import shutil
 
-VERSION = "1.0.01"
+VERSION = "1.0.02"
 DESCRIPTION = "Common Path and Importing Operations"
 
 
