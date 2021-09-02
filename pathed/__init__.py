@@ -20,7 +20,7 @@ filedir = None
 
 for frame in _inspect.stack()[1:]:
     if frame.filename[0] != "<":
-        filedir = frame.filename
+        filedir = _os.path.split(frame.filename)[0]
         break
 if filedir == None:
     # Returns cwd for interactive terminals
