@@ -1,5 +1,5 @@
 # Why pathed?
-Want to import a file that can't be accessed by "import"? Or a whole directory of files? Tired of changing pathing when transferring a program from one computer to another? This modules helps with all that! Inspired by pathlib, os.path, shutil, and glob.
+Want to import a file that can't be accessed by "import"? Or a whole directory of files? This helps with that! I've also tried to add the most used path operations like find('*.txt'), rmfile, mkfile, read, and more in the Path module. Path is a str wrapper around pathlib.Path so you don't have to str(Path)! Inspired by pathlib, os.path, shutil, and glob.
 
 ---
 
@@ -87,6 +87,40 @@ from pathed import Path
 Path('a')              # /path/to/filedir/a
 Path('a', custom=True) # /a
 ```
+
+---
+# Summary of path operations
+```python
+# dir ops
+Path.isdir()
+Path.mkdir()
+Path.rmdir()
+Path.copydir()
+
+# file ops
+Path.isfile()
+Path.mkfile()
+Path.rmfile()
+Path.copyfile()
+
+# path ops
+Path.branch()
+Path.leaf()
+Path.add()
+Path.ls()
+Path.up()
+Path.find()
+Path.string()
+Path.exists()
+Path.splitpath()
+
+# additional ops
+Path.write()
+Path.read()
+Path.readfast()
+Path.move()
+```
+---
 
 ### Path.isdir()
 returns True if Path is a directory
@@ -302,39 +336,6 @@ next(file_gen) # hello world
 
 ### Path.move()
 moves Path to destination, returns destination as Path
-
----
-# Summary of path operations
-```python
-# dir ops
-Path.isdir()
-Path.mkdir()
-Path.rmdir()
-Path.copydir()
-
-# file ops
-Path.isfile()
-Path.mkfile()
-Path.rmfile()
-Path.copyfile()
-
-# path ops
-Path.branch()
-Path.leaf()
-Path.add()
-Path.ls()
-Path.up()
-Path.find()
-Path.string()
-Path.exists()
-Path.splitpath()
-
-# additional ops
-Path.write()
-Path.read()
-Path.readfast()
-Path.move()
-```
 
 ---
 
