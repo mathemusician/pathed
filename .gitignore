@@ -1,4 +1,4 @@
 build/*
 dist/*
-op.egg-info/*
-op/__pycache__/*
+pathed.egg-info/*
+pathed/__pycache__/*

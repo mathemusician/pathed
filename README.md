@@ -1,5 +1,5 @@
-# Why Use pathed?
-Ever wanted to import a file that was hard to get? Or a whole directory of files? Ever get tired of changing the pathing when transferring a program from one computer to another? This modules helps with all that! Inspired by pathlib, os.path, shutil, and glob.
+# Why pathed?
+Want to import a file that can't be accessed by "import"? Or a whole directory of files? Tired of changing pathing when transferring a program from one computer to another? This modules helps with all that! Inspired by pathlib, os.path, shutil, and glob.
 
 ---
 
