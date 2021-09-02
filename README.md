@@ -1,4 +1,4 @@
-# Why Use op?
+# Why Use pathed?
 Ever wanted to import a file that was hard to get? Or a whole directory of files? Ever get tired of changing the pathing when transferring a program from one computer to another? This modules helps with all that! Inspired by pathlib, os.path, shutil, and glob.
 
 ---
@@ -7,7 +7,7 @@ Ever wanted to import a file that was hard to get? Or a whole directory of files
 
 Importing files, folders, and adding to paths should be easy
 ```
-from op import cwd, importfile, importdir
+from pathed import cwd, importfile, importdir
 
 # import file or directory to variable
 hard_to_import_file = importfile(cwd/'..'/'..'/'file.py')
@@ -26,7 +26,7 @@ importdir(cwd/'..'/'..', sys.modules[__name__])
 
 For pathing, I recommend using "filedir", the path to the current file directory, since cwd changes frequently within large projects
 ```
-from op import filedir
+from pathed import filedir
 
 filedir/'..'/'path'/'to'/'file.txt'
 ```
@@ -45,7 +45,7 @@ filedir/'..'/'path'/'to'/'file.txt'
 ### Path.isdir()
 returns True if Path is a directory
 ```
-from op import cwd
+from pathed import cwd
 
 cwd.isdir() # returns True
 ```
@@ -53,7 +53,7 @@ cwd.isdir() # returns True
 ### Path.mkdir()
 makes a directory called Path, throws error if Path is already a directory
 ```
-from op import cwd
+from pathed import cwd
 
 cwd.add('new_directory').mkdir()
 ```
@@ -61,7 +61,7 @@ cwd.add('new_directory').mkdir()
 ### Path.rmdir()
 removes Path if Path is a directory
 ```
-from op import cwd
+from pathed import cwd
 
 new_dir = cwd/'new_directory'
 new_dir.mkdir()
@@ -71,7 +71,7 @@ new_dir.rmdir()
 ### Path.copydir(destination)
 copies Path to destination if Path is a directory, returns destination as Path
 ```
-from op import cwd
+from pathed import cwd
 
 a = cwd/'a'
 b = cwd/'b'
@@ -82,7 +82,7 @@ a.copydir(b/'a')
 ### Path.isfile(path)
 returns True if Path is a file
 ```
-from op import cwd
+from pathed import cwd
 
 cwd.isfile() # returns false
 ```
@@ -95,7 +95,7 @@ mkfile(data, 'w') write data, makes file if Path does not exist
 mkfile(data, 'wb') writes bytes data to Path
 mkfile(data, 'a') appends data to Path
 ```
-from op import cwd
+from pathed import cwd
 
 cwd.add('new.txt').mkfile('hello world')
 ```
@@ -103,7 +103,7 @@ cwd.add('new.txt').mkfile('hello world')
 ### Path.rmfile()
 removes Path if Path is a file
 ```
-from op import cwd
+from pathed import cwd
 
 textfile = cwd.add('new.txt')
 textfile.mkfile('goodbye world')
@@ -113,7 +113,7 @@ textfile.rmfile()
 ### Path.copyfile(destination)
 copies Path to destination if Path is a file, returns destination as Path
 ```
-from op import cwd
+from pathed import cwd
 
 textfile = cwd.add('a.txt')
 textfile.mkfile('hello world')
@@ -124,7 +124,7 @@ textfile.copyfile(textfile/'..'/'b.txt')
 ### Path.branch()
 /absolute/path/to/leaf -> returns branch
 ```
-from op import cwd
+from pathed import cwd
 
 text_file = cwd.add('blank.txt').mkfile()
 text_file.branch() # returns cwd
@@ -133,7 +133,7 @@ text_file.branch() # returns cwd
 ### Path.leaf()
 /absolute/path/to/leaf -> returns leaf
 ```
-from op import cwd
+from pathed import cwd
 
 text_file = cwd.add('blank.txt').mkfile()
 text_file.branch() # returns 'blank.txt'
@@ -156,7 +156,7 @@ if full=True, returns [Path, Path, ...] of absolute Paths
 
 throws error if Path doesn't exist
 ```
-from op import cwd
+from pathed import cwd
 
 cwd.ls() # lists files and directories in cwd
 ```
@@ -166,7 +166,7 @@ goes up the directory 'num' times
 
 returns Path
 ```
-from op import cwd
+from pathed import cwd
 
 b = cwd/'a'/b'
 
@@ -179,7 +179,7 @@ find('*.py') returns [Path, Path, ...] in current Path that have the .py extensi
 
 find('**.py') returns [Path, Path, ...] in current Path and subdirectories that have the .py extension
 ```
-from op import cwd
+from pathed import cwd
 
 cwd.find(*.py) # returns list of *.py files
 ```
@@ -192,7 +192,7 @@ useful for printing raw Windows paths
 ### Path.exists()
 returns True if the Path exists
 ```
-from op import cwd
+from pathed import cwd
 
 cwd.exists() # should return True
 ```
@@ -205,7 +205,7 @@ print(leaf)   # leaf
 
 if full=True, returns [absolute, path, to, leaf]
 ```
-from op import cwd
+from pathed import cwd
 
 a = cwd/'a'
 a.splitpath()
@@ -221,7 +221,7 @@ write(data, 'w') write data, makes file if Path does not exist
 write(data, 'wb') writes bytes data to Path
 write(data, 'a') appends data to Path
 ```
-from op import cwd
+from pathed import cwd
 
 cwd.add('new.txt').write('hello world')
 ```
@@ -231,7 +231,7 @@ read() returns text of Path if Path is a file
 
 read('rb') returns text of byte file if Path is a file
 ```
-from op import cwd
+from pathed import cwd
 
 textfile = cwd.add('new.txt')
 textfile.mkfile('hello world')
@@ -246,7 +246,7 @@ returns generator for reading large files one line at a time
 file_text = Path.readfast()
 next(file_text) to get string of next file, throws StopIteration Error at end of file
 ```
-from op import cwd
+from pathed import cwd
 
 textfile = cwd.add('new.txt')
 textfile.mkfile('hello world')
