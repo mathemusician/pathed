@@ -18,7 +18,7 @@ path = cwd/2/3+'.txt' # accepts objects that can be converted into string
 cwd.find(*.txt) # lists all text files in cwd
 ```
 
-You can also import an entire directory into the namespace. Convenient, but not really recommended. Let's keep this between you and me...
+You can also import an entire directory into the namespace. Convenient, but not really recommended.
 ```python
 importfile(cwd/'..'/'..', sys.modules[__name__])
 importdir(cwd/'..'/'..', sys.modules[__name__])
