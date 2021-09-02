@@ -10,8 +10,9 @@ Importing files, folders, and adding to paths should be easy
 from pathed import cwd, importfile, importdir
 
 # import file or directory to variable
-hard_to_import_file = importfile(cwd/'..'/'..'/'file.py')
-hard_to_import_dir = importdir(cwd/'..'/'..')
+name = importfile(cwd/'..'/'..'/'name.py')
+
+dirname = importdir(cwd/'..'/'..')
 
 path = cwd/2/3+'.txt' # accepts objects that can be converted into string
 
