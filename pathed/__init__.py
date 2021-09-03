@@ -6,6 +6,7 @@ Borrows heavily from pathlib, os, shutil, and glob
 
 import os as _os
 import sys as _sys
+import site as _site
 import importlib.util
 import shutil as _shutil
 import inspect as _inspect
@@ -20,7 +21,10 @@ filedir = None
 
 for frame in _inspect.stack()[1:]:
     if frame.filename[0] != "<":
-        filedir = _os.path.split(frame.filename)[0]
+        if _os.path.isfile(frame.filename):
+            filedir = _os.path.dirname(frame.filename)
+        else:
+            filedir = frame.filename
         break
 if filedir == None:
     # Returns cwd for interactive terminals
@@ -43,7 +47,7 @@ class Path(str):
         if custom:
             paths = []
         else:
-            paths = [_os.path.dirname(filedir)]
+            paths = [filedir]
 
         for arguments in args:
             if arguments == "..":
@@ -246,7 +250,7 @@ class Path(str):
         """
         path = _os.path.split(self.string())
         if full == True:
-            return self.__str__().split(os.path.sep)
+            return self.__str__().split(_os.path.sep)
         else:
             return [Path(path[0], custom=True), path[1]]
 
@@ -338,3 +342,83 @@ class importdir:
 
 cwd = Path(str(_Path.cwd()), custom=True)
 filedir = Path(filedir, custom=True)
+
+old_import = __import__
+modules = _sys.modules
+
+# find out where site-packages are
+site_packages = [url for url in _sys.path if 'site-packages' in url]
+packages = []
+
+for url in site_packages:
+    url = Path(url, custom=True)
+    names = url.ls()
+    for name in names:
+        if name[-3:] == '.py':
+            name = name[:-3]
+        packages.append(name)
+
+packages = set(packages)
+# only use first two folders of root
+first_two_folders = _site.getsitepackages()[0].split(_os.path.sep)[:3]
+packages_root = _os.path.sep.join(first_two_folders)
+
+def evaluate_name(name, url, up_dir=1):
+    up_dir -= 1
+    up_dir = ['..' for i in range(up_dir)]
+
+    url = Path(url, custom=True)
+    directory = url.branch()
+    name = name.split('.')
+    
+    final = directory.add(*up_dir, *name)
+
+    is_file = _os.path.isfile(final + '.py')
+    is_dir = _os.path.isdir(final)
+
+    if is_file and is_dir:
+        print(f'Ambiguous reference, file and directory found for {name} at {final}')
+        raise ImportError
+    elif is_file:
+        return importfile(final + '.py')
+    elif is_dir:
+        return importdir(final)
+    else:
+        print(f'Relative importing was not able to find package at {final}')
+        raise ImportError()
+
+def new_import(*args, **kwargs):
+    file = args[1]['__name__']
+    name = args[0]
+    package_name = args[1]['__name__']
+    try:
+        url = args[1]['__file__']
+    except:
+        # for virtual environments
+        url = filedir/'virtual_environment'
+    
+    if '.' in name:
+        if name[0] == '.':
+            print('. found at beginning')
+        else:
+            name = name.split('.')[0]
+    
+    # it's in the packages
+    if packages_root in url:
+        imported = old_import(*args, **kwargs)
+    elif name in packages and args[4] == 0:
+        imported = old_import(*args, **kwargs)
+    elif name in modules and args[4] == 0:
+        imported = old_import(*args, **kwargs)
+    
+    # not in the package but goes up folders
+    elif args[4] != 0:
+        imported = evaluate_name(args[0], url, args[4])
+    # sometimes I just go into folders
+    elif '.' in name:
+        imported = evaluate_name(name, url)
+    
+    else:
+        imported = old_import(*args, **kwargs)
+    
+    return imported
