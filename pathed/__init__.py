@@ -216,7 +216,7 @@ class Path(str):
     def readfast(self, *args, **kwargs) -> Any:
         """
         good for reading the first few of lines of a VERY LARGE file
-        
+
         returns generator for reading large files one line at a time
 
         file_text = Path.readfast()
@@ -257,7 +257,7 @@ class Path(str):
     def branch(self) -> str:
         """
         /absolute/path/to/leaf -> returns branch
-        
+
         print(Path.branch()) # /absolute/path/to
         """
         return self.splitpath()[0]
@@ -265,7 +265,7 @@ class Path(str):
     def leaf(self) -> str:
         """
         /absolute/path/to/leaf -> returns leaf
-        
+
         print(Path.leaf()) # leaf
         """
         return self.splitpath()[1]
@@ -347,14 +347,14 @@ old_import = __import__
 modules = _sys.modules
 
 # find out where site-packages are
-site_packages = [url for url in _sys.path if 'site-packages' in url]
+site_packages = [url for url in _sys.path if "site-packages" in url]
 packages = []
 
 for url in site_packages:
     url = Path(url, custom=True)
     names = url.ls()
     for name in names:
-        if name[-3:] == '.py':
+        if name[-3:] == ".py":
             name = name[:-3]
         packages.append(name)
 
@@ -363,46 +363,48 @@ packages = set(packages)
 first_two_folders = _site.getsitepackages()[0].split(_os.path.sep)[:3]
 packages_root = _os.path.sep.join(first_two_folders)
 
+
 def evaluate_name(name, url, up_dir=1):
     up_dir -= 1
-    up_dir = ['..' for i in range(up_dir)]
+    up_dir = [".." for i in range(up_dir)]
 
     url = Path(url, custom=True)
     directory = url.branch()
-    name = name.split('.')
-    
+    name = name.split(".")
+
     final = directory.add(*up_dir, *name)
 
-    is_file = _os.path.isfile(final + '.py')
+    is_file = _os.path.isfile(final + ".py")
     is_dir = _os.path.isdir(final)
 
     if is_file and is_dir:
-        print(f'Ambiguous reference, file and directory found for {name} at {final}')
+        print(f"Ambiguous reference, file and directory found for {name} at {final}")
         raise ImportError
     elif is_file:
-        return importfile(final + '.py')
+        return importfile(final + ".py")
     elif is_dir:
         return importdir(final)
     else:
-        print(f'Relative importing was not able to find package at {final}')
+        print(f"Relative importing was not able to find package at {final}")
         raise ImportError()
 
+
 def new_import(*args, **kwargs):
-    file = args[1]['__name__']
+    file = args[1]["__name__"]
     name = args[0]
-    package_name = args[1]['__name__']
+    package_name = args[1]["__name__"]
     try:
-        url = args[1]['__file__']
+        url = args[1]["__file__"]
     except:
         # for virtual environments
-        url = filedir/'virtual_environment'
-    
-    if '.' in name:
-        if name[0] == '.':
-            print('. found at beginning')
+        url = filedir / "virtual_environment"
+
+    if "." in name:
+        if name[0] == ".":
+            print(". found at beginning")
         else:
-            name = name.split('.')[0]
-    
+            name = name.split(".")[0]
+
     # it's in the packages
     if packages_root in url:
         imported = old_import(*args, **kwargs)
@@ -410,15 +412,15 @@ def new_import(*args, **kwargs):
         imported = old_import(*args, **kwargs)
     elif name in modules and args[4] == 0:
         imported = old_import(*args, **kwargs)
-    
+
     # not in the package but goes up folders
     elif args[4] != 0:
         imported = evaluate_name(args[0], url, args[4])
     # sometimes I just go into folders
-    elif '.' in name:
+    elif "." in name:
         imported = evaluate_name(name, url)
-    
+
     else:
         imported = old_import(*args, **kwargs)
-    
+
     return imported
