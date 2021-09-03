@@ -1,9 +1,41 @@
 # Why pathed?
-Want to import a file that can't be accessed by "import"? Or a whole directory of files? This helps with that! I've also tried to add the most used path operations like find('*.txt'), rmfile, mkfile, read, and more in the Path module. Path is a str wrapper around pathlib.Path so you don't have to str(Path)! Inspired by pathlib, os.path, shutil, and glob.
+Want to import a file that can't be accessed by "import"? Or a whole directory of files? This helps with that! Also, common path operations like find('*.txt'), rmfile, mkfile, read, and more are in the Path module. Tired of writing str(Path())? Try the Path module. Inspired by pathlib, os.path, shutil, and glob.
 
 ---
 
-# Quick Start
+# One Liner for Relative Importing
+
+Completely changes the way the "from _ import _" statement to use relative importing
+```python
+import builtins, pathed; builtins.__import__ = pathed.new_import
+```
+
+Restore "from" statement
+```
+builtins.__import__ = pathed.old_import
+```
+
+
+# Quick Start On Normal Modules
+
+Relative Importing
+```python
+import builtins, pathed
+builtins.__import__ = pathed.new_import
+
+from ....Destkop.new import *
+# imports classes, functions, and variables from new.py
+# new.py is up 3 directories, down 1 directory
+# MUST use the word "from" in order to do relative importing
+
+import directory.lambda
+# this uses the normal import statement because 
+# there's no "from" keyword in the beginning
+
+builtins.__import__ = pathed.old_import
+# use the "from" keyword normally after this
+```
+
 
 Importing files, folders, and adding to paths should be easy
 ```python
@@ -35,7 +67,7 @@ filedir/'..'/'path'/'to'/'file.txt'
 # Methods
 
 ### filedir
-returns your current file directory as a str-like object
+Returns your current file directory as a str-like object
 ```python
 from pathed import filedir
 
@@ -43,19 +75,47 @@ print(filedir) # prints current file directory
 ```
 
 ### cwd
-returns your current working directory as a str-like object
+Returns your current working directory as a str-like object
 ```python
 from pathed import cwd
 
 print(cwd) # prints current working directory
 ```
 
+### new_import()
+Replaces the builtins.\__import__ statment, this allows for normal import syntax but with relative imports
+
+Caveats:
+- runs \__init__.py if folder is imported
+- runs \__init__.py if file is in the same folder as \__init__.py
+- only the "from _ import _" statement is overidden
+- only *.py files are imported
+- directories are not recursively added
+- if directories are added in the \__init__.py file, directories are added to namespace
+
+Dot notation:
+- go up n-1 folders, with n representing the number of dots
+
+```python
+from ......spicy import *
+# goes up 5 folders then down one folder called spicy
+
+from ......spicy.file import * 
+# import file.py from spicy folder
+
+from .here import *
+# imports file here.py from the same directory as file
+# same as:
+from here import *
+```
+
+
 ### importfile(path, module)
 Parameters:
  - path: str or str-like object with path to directory
  - module: module that will have attributes appended to it
 
-returns file functions, classes, and global variables from a python file
+Returns file functions, classes, and global variables from a python file
 ```python
 from pathed import importfile
 
@@ -67,9 +127,9 @@ Parameters:
  - path: str or str-like object with path to directory
  - module: module that will have attributes appended to it
 
-imports *.py files from directory
+Imports *.py files from directory
 
-returns class with attributes named after *.py files
+Returns class with attributes named after *.py files
 ```python
 from pathed import importdir
 

@@ -287,7 +287,7 @@ def importfile(path: str, module: Optional[Any] = None) -> Any:
         path: str or str-like object with path to directory
         module: module that will have attributes appended to it
 
-    returns file functions, classes, and global variables from a python file
+    Returns file functions, classes, and global variables from a python file
     """
     path = Path(path, custom=True)
     assert _os.path.isfile(path) == True
@@ -315,9 +315,9 @@ class importdir:
         path: str or str-like object with path to directory
         module: module that will have attributes appended to it
 
-    imports *.py files from directory
+    Imports *.py files from directory
 
-    returns class with attributes named after *.py files
+    Returns class with attributes named after *.py files
     """
 
     def __init__(self, path: str, module: Optional[Any] = None) -> Union[Any, None]:
@@ -343,6 +343,7 @@ class importdir:
 cwd = Path(str(_Path.cwd()), custom=True)
 filedir = Path(filedir, custom=True)
 
+# keep old import statement for future reference
 old_import = __import__
 modules = _sys.modules
 
@@ -350,6 +351,7 @@ modules = _sys.modules
 site_packages = [url for url in _sys.path if "site-packages" in url]
 packages = []
 
+# keep a set of module names
 for url in site_packages:
     url = Path(url, custom=True)
     names = url.ls()
@@ -359,12 +361,28 @@ for url in site_packages:
         packages.append(name)
 
 packages = set(packages)
-# only use first two folders of root
+
+# sometimes a module is imported that is not in site-packages
+# however, these urls usually use the same first two folders
+# this might break in the future, needs a better implementation
 first_two_folders = _site.getsitepackages()[0].split(_os.path.sep)[:3]
 packages_root = _os.path.sep.join(first_two_folders)
 
 
-def evaluate_name(name, url, up_dir=1):
+def evaluate_name(name: str, url: str, up_dir: int = 1) -> Any:
+    """
+    evaluate_name(name, url, up_dir=1)
+
+    Parameters:
+        name:
+        url:
+        up_dir: how many times
+
+    Returns either an importdir or importfile, depending on the url given
+
+    If url can be either a file or a directory, raises ImportError
+    If url is not found, will raise an ImportError
+    """
     up_dir -= 1
     up_dir = [".." for i in range(up_dir)]
 
@@ -390,17 +408,36 @@ def evaluate_name(name, url, up_dir=1):
 
 
 def new_import(*args, **kwargs):
+    """
+    Replaces the builtins.__import__ statment, this allows for normal import syntax but with relative imports
+
+    Caveats:
+        - runs __init__.py if folder is imported
+        - runs __init__.py if file is in the same folder as __init__.py
+        - only the "from _ import _" statement is overidden
+        - only *.py files are imported
+        - directories are not recursively added
+        - if directories are added in the __init__.py file, directories are added to namespace
+
+    Dot notation:
+        - go up n-1 folders, with n representing the number of dots
+    """
     file = args[1]["__name__"]
     name = args[0]
     package_name = args[1]["__name__"]
+
     try:
+        # normal files
         url = args[1]["__file__"]
     except:
-        # for virtual environments
+        # make fake url for virtual environments
         url = filedir / "virtual_environment"
 
     if "." in name:
         if name[0] == ".":
+            # this should not happen
+            # putting this here in case python changes
+            # interpreter behavior in the future
             print(". found at beginning")
         else:
             name = name.split(".")[0]
@@ -416,10 +453,11 @@ def new_import(*args, **kwargs):
     # not in the package but goes up folders
     elif args[4] != 0:
         imported = evaluate_name(args[0], url, args[4])
-    # sometimes I just go into folders
-    elif "." in name:
+    # did not expect this to be run; here just in case
+    elif "." in args[0]:
         imported = evaluate_name(name, url)
 
+    # just in case
     else:
         imported = old_import(*args, **kwargs)
 
