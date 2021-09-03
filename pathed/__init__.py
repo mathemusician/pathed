@@ -16,7 +16,7 @@ from copy import deepcopy as _deepcopy
 from typing import Optional, Any, List, Union
 
 
-# find path of the file doing the importing
+# find path of the file doing the importing using inspect
 filedir = None
 
 for frame in _inspect.stack()[1:]:
@@ -215,12 +215,28 @@ class Path(str):
 
     def readfast(self, *args, **kwargs) -> Any:
         """
-        good for reading the first few of lines of a VERY LARGE file
+        Parameters
+        ----------
+        self : str
+            The path to the file.
+        *args : str
+            The arguments to pass to the open function.
+        **kwargs : str
+            The keyword arguments to pass to the open function.
 
-        returns generator for reading large files one line at a time
+        Returns
+        -------
+        generator
 
-        file_text = Path.readfast()
-        next(file_text) to get string of next file, throws StopIteration Error at end of file
+        Raises
+        ------
+        AssertionError
+            If the file does not exist.
+
+        Examples
+        --------
+        >>> for line in readfast('/path/to/file'):
+        ...     print(next(line))
         """
         assert _os.path.isfile(self.string()) == True
 
@@ -230,9 +246,14 @@ class Path(str):
 
     def up(self, num: int, *args) -> str:
         """
-        goes up the directory 'num' times
+        Return a path that is num times up from the current path.
 
-        returns Path
+        Parameters:
+            num (int): The number of times to go up.
+            args (tuple): Any additional arguments to be passed to the Path constructor.
+
+        Returns:
+            str: The new path.
         """
         path = self.__str__()
 
@@ -311,13 +332,21 @@ class importdir:
     """
     importdir(path, module=Optional)
 
-    Parameters:
-        path: str or str-like object with path to directory
-        module: module that will have attributes appended to it
-
-    Imports *.py files from directory
-
-    Returns class with attributes named after *.py files
+    This function takes a directory path and a module name.
+    It imports all python files in the directory as the given module.
+    If no module name is given, it will import the python files as top level modules.
+    
+    Parameters
+    ----------
+    path : str
+        The path of the directory.
+    module : Optional[Any]
+        The name of the module.
+    
+    Returns
+    -------
+    Union[Any, None]
+        The imported module.
     """
 
     def __init__(self, path: str, module: Optional[Any] = None) -> Union[Any, None]:
@@ -340,7 +369,16 @@ class importdir:
                 importfile(python_file, module)
 
 
+"""
+cwd returns the current working directory
+"""
 cwd = Path(str(_Path.cwd()), custom=True)
+
+"""
+filedir returns the directory path of the file that calls it.
+This is useful when you want to save files in the same directory as your code.
+It also works with interactive terminals, unlike `__file__`.
+"""
 filedir = Path(filedir, custom=True)
 
 # keep old import statement for future reference
@@ -409,7 +447,8 @@ def evaluate_name(name: str, url: str, up_dir: int = 1) -> Any:
 
 def new_import(*args, **kwargs):
     """
-    Replaces the builtins.__import__ statment, this allows for normal import syntax but with relative imports
+    Replaces the builtins.__import__ statment
+    This allows for normal import syntax but with relative imports
 
     Caveats:
         - runs __init__.py if folder is imported
