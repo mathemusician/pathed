@@ -220,9 +220,9 @@ class Path(str):
         self : str
             The path to the file.
         *args : str
-            The arguments to pass to the open function.
+            The arguments to pass to open().
         **kwargs : str
-            The keyword arguments to pass to the open function.
+            The keyword arguments to pass to open().
 
         Returns
         -------
@@ -235,7 +235,7 @@ class Path(str):
 
         Examples
         --------
-        >>> for line in readfast('/path/to/file'):
+        >>> for line in Path().readfast('/path/to/file'):
         ...     print(next(line))
         """
         assert _os.path.isfile(self.string()) == True
@@ -461,9 +461,17 @@ def new_import(*args, **kwargs):
     Dot notation:
         - go up n-1 folders, with n representing the number of dots
     """
-    file = args[1]["__name__"]
     name = args[0]
-    package_name = args[1]["__name__"]
+
+    if name == 'io' or name == '_io':
+        imported = old_import(*args, **kwargs)
+        return imported
+    
+    try:
+        package_name = args[1]["__name__"]
+    except:
+        imported = old_import(*args, **kwargs)
+        return imported
 
     try:
         # normal files

@@ -107,6 +107,14 @@ from .here import *
 # imports file here.py from the same directory as file
 # same as:
 from here import *
+
+# name of directory or file is needed
+# this is NOT possible at the moment
+from .... import jalapeño
+# this just imports everthing from cwd
+from . import bell
+# this is the right way to do it
+from .pepper_file import ghost_module
 ```
 
 
