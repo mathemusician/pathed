@@ -31,6 +31,53 @@ if filedir == None:
     filedir = str(_Path.cwd())
 
 
+def path_parsing(args: List[str], paths: List[str]) -> None:
+    """
+    Handle strings that are
+    """
+    for arg in args:
+        # convert arg to string
+        if type(arg) != type(str()):
+            try:
+                arg = str(arg)
+            except:
+                print("path could not be converting to a string")
+                raise TypeError
+
+        if len(arg) == 0:
+            continue
+
+        if _os.path.sep in arg[1:]:
+            split_paths = arg.split(_os.path.sep)
+            path_parsing(args=split_paths, paths=paths)
+            continue
+
+        first_char = arg[0]
+
+        if arg == "..":
+            paths[0] = _os.path.split(paths[0])[0]
+
+        elif first_char == _os.path.sep:
+            # "/a/b" / "/a/b" -> "/a/b/a/b"
+            if len(arg) > 1:
+                paths.append(arg[1:])
+
+        elif first_char == "*":
+            # "/a" / "*.py" -> "/a/file.py"
+            candidates = Path(*paths, custom=True).find(arg)
+            if len(candidates) == 1:
+                paths.append(candidates[0].leaf())
+            else:
+                raise RuntimeError(
+                    "WARNING: multiple, ambiguous, or no paths for "
+                    + f"{_os.path.sep + _os.path.join(*paths, arg)}"
+                    + f": {candidates}"
+                )
+
+        else:
+            paths.append(arg)
+
+
 class Path(str):
     """
     class Path:
@@ -55,26 +102,7 @@ class Path(str):
             # "a" -> "/current/working/directory/a"
             paths = [filedir]
 
-        for arg in args:
-            if arg == "..":
-                paths[0] = _os.path.split(paths[0])[0]
-            elif arg[0] == _os.path.sep:
-                # "/a/b" / "/a/b" -> "/a/b/a/b"
-                if len(arg) > 1:
-                    paths.append(arg[1:])
-            elif arg[0] == "*":
-                # "/a" / "*.py" -> "/a/file.py"
-                candidates = Path(*paths, custom=True).find(arg)
-                if len(candidates) == 1:
-                    paths.append(candidates[0].leaf())
-                else:
-                    raise RuntimeError(
-                        "WARNING: multiple, ambiguous, or no paths for "
-                        + f"{_os.path.sep + _os.path.join(*paths, arg)}"
-                        + f": {candidates}"
-                    )
-            else:
-                paths.append(arg)
+        path_parsing(args=args, paths=paths)
 
         path = str(_Path(*paths))
 
@@ -99,19 +127,7 @@ class Path(str):
 
         paths = [current_path]
 
-        for arg in args:
-            # convert arg to string
-            if type(arg) != type(str()):
-                try:
-                    arg = str(arg)
-                except:
-                    print("path could not be converting to a string")
-                    raise TypeError
-
-            if arg == "..":
-                paths[0] = _os.path.split(paths[0])[0]
-            else:
-                paths.append(arg)
+        path_parsing(args=args, paths=paths)
 
         return Path(*paths, custom=True)
 

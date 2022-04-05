@@ -9,20 +9,19 @@ directory = os.path.sep.join(directory)
 
 
 def test_common_operations():
-    print(Path('/a/b', '/a/b', custom=True))
+    assert str(Path("/a/b", "/a/b", custom=True)) == "/a/b/a/b"
 
-    a = Path('a', custom=True)
-    b = a/'b'
-    assert str(b/b) == "/a/b/a/b"
+    a = Path("a", custom=True)
+    b = a / "b"
+    assert str(b / b) == "/a/b/a/b"
 
-    assert str(b/".."/".."/"a"/"b") == "/a/b"
-    assert str(a/".."/".."/"..") == "/."
-    assert str(b/".."/".."/".."/".."/".."/"..") == "/."
+    assert str(b / ".." / ".." / "a" / "b") == "/a/b"
+    assert str(a / ".." / ".." / "..") == "/."
+    assert str(b / ".." / ".." / ".." / ".." / ".." / "..") == "/."
 
-    #assert str(cwd/"*path_ops") == 
-    try:
-        cwd/"*md"
-    except RuntimeError as e:
-        print(e)
+    assert str(cwd / "*md") == str(Path(cwd + os.path.sep + "*md"))
+
+    with pytest.raises(RuntimeError):
+        cwd / "*.py"
 
     assert str(Path("/a/b/c")) == "/a/b/c"
