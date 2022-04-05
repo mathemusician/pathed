@@ -42,18 +42,39 @@ class Path(str):
     Path/str/int/list will concatenate the string versions and return a str-like Path object
     """
 
-    def __new__(cls, *args, custom: bool = False, start_at_root: bool = True) -> str:
+    def __new__(self, *args, custom: bool = False, start_at_root: bool = True) -> str:
+        # "/a/b" -> "/a/b"
+        root_in_first_arg = False
+        if len(args[0]) > 0:
+            if args[0][0] == _os.path.sep:
+                root_in_first_arg = True
 
-        if custom:
+        if custom or root_in_first_arg:
             paths = []
         else:
+            # "a" -> "/current/working/directory/a"
             paths = [filedir]
 
-        for arguments in args:
-            if arguments == "..":
+        for arg in args:
+            if arg == "..":
                 paths[0] = _os.path.split(paths[0])[0]
+            elif arg[0] == _os.path.sep:
+                # "/a/b" / "/a/b" -> "/a/b/a/b"
+                if len(arg) > 1:
+                    paths.append(arg[1:])
+            elif arg[0] == "*":
+                # "/a" / "*.py" -> "/a/file.py"
+                candidates = Path(*paths, custom=True).find(arg)
+                if len(candidates) == 1:
+                    paths.append(candidates[0].leaf())
+                else:
+                    raise RuntimeError(
+                        "WARNING: multiple, ambiguous, or no paths for "
+                        + f"{_os.path.sep + _os.path.join(*paths, arg)}"
+                        + f": {candidates}"
+                    )
             else:
-                paths.append(arguments)
+                paths.append(arg)
 
         path = str(_Path(*paths))
 
@@ -61,10 +82,10 @@ class Path(str):
             if path[0] != _os.path.sep:
                 path = _os.path.sep + path
 
-        return str.__new__(cls, path)
+        return super(Path, self).__new__(self, path)
 
-    def __init(self) -> None:
-        super().__init__(self)
+    def __init__(self, *args, **kwargs) -> None:
+        pass
 
     def add(self, *args) -> str:
         return self.__truediv__(*args)
@@ -78,19 +99,19 @@ class Path(str):
 
         paths = [current_path]
 
-        for arguments in args:
-            # convert arguments to string
-            if type(arguments) != type(str()):
+        for arg in args:
+            # convert arg to string
+            if type(arg) != type(str()):
                 try:
-                    arguments = str(arguments)
+                    arg = str(arg)
                 except:
                     print("path could not be converting to a string")
                     raise TypeError
 
-            if arguments == "..":
+            if arg == "..":
                 paths[0] = _os.path.split(paths[0])[0]
             else:
-                paths.append(arguments)
+                paths.append(arg)
 
         return Path(*paths, custom=True)
 
@@ -235,7 +256,7 @@ class Path(str):
 
         Examples
         --------
-        >>> for line in Path().readfast('/path/to/file'):
+        >>> for line in Path('/path/to/file').readfast():
         ...     print(next(line))
         """
         assert _os.path.isfile(self.string()) == True
@@ -335,14 +356,14 @@ class importdir:
     This function takes a directory path and a module name.
     It imports all python files in the directory as the given module.
     If no module name is given, it will import the python files as top level modules.
-    
+
     Parameters
     ----------
     path : str
         The path of the directory.
     module : Optional[Any]
         The name of the module.
-    
+
     Returns
     -------
     Union[Any, None]
@@ -463,10 +484,10 @@ def new_import(*args, **kwargs):
     """
     name = args[0]
 
-    if name == 'io' or name == '_io':
+    if name == "io" or name == "_io":
         imported = old_import(*args, **kwargs)
         return imported
-    
+
     try:
         package_name = args[1]["__name__"]
     except:

@@ -29,14 +29,9 @@ dist_path = os.path.join(this_directory, "dist")
 op_info_path = os.path.join(this_directory, "pathed.egg-info")
 pycache_path = os.path.join(this_directory, "pathed", "__pycache__")
 
-if os.path.exists(build_path):
-    shutil.rmtree(build_path)
-if os.path.exists(dist_path):
-    shutil.rmtree(dist_path)
-if os.path.exists(op_info_path):
-    shutil.rmtree(op_info_path)
-if os.path.exists(pycache_path):
-    shutil.rmtree(pycache_path)
+for folder_path in (build_path, dist_path, op_info_path, pycache_path):
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
 
 
 # Setting up

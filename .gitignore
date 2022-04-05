@@ -2,3 +2,5 @@ build/*
 dist/*
 pathed.egg-info/*
 pathed/__pycache__/*
+.vscode/*
+**/__pycache__/**

@@ -397,8 +397,8 @@ next(file_text) to get string of next file, throws StopIteration Error at end of
 ```python
 from pathed import cwd
 
-textfile = cwd.add('new.txt')
-textfile.mkfile('hello world')
+textfile = cwd/'new.txt'
+textfile.mkfile(data='hello world')
 file_gen = textfile.readfast()
 next(file_gen) # hello world
 ```
