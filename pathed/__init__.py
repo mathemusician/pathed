@@ -13,7 +13,7 @@ import inspect as _inspect
 from glob import glob as _glob
 from pathlib import Path as _Path
 from copy import deepcopy as _deepcopy
-from typing import Optional, Any, List, Union
+from typing import Optional, Any, List, Tuple
 
 
 # find path of the file doing the importing using inspect
@@ -26,23 +26,24 @@ for frame in _inspect.stack()[1:]:
         else:
             filedir = frame.filename
         break
-if filedir == None:
+if filedir is None:
     # Returns cwd for interactive terminals
     filedir = str(_Path.cwd())
 
 
-def path_parsing(args: List[str], paths: List[str]) -> None:
+def path_parsing(args: Tuple[Any, ...], paths: List[str]) -> None:
     """
     Handle strings that are
     """
     for arg in args:
-        # convert arg to string
+        # This is the right way to check instance because
+        # some weird classes don't actually yield string
         if type(arg) != type(str()):
+            # convert arg to string
             try:
                 arg = str(arg)
-            except:
-                print("path could not be converting to a string")
-                raise TypeError
+            except Exception as e:
+                raise TypeError("path could not be converting to a string because: ", e)
 
         if len(arg) == 0:
             continue
@@ -89,7 +90,9 @@ class Path(str):
     Path/str/int/list will concatenate the string versions and return a str-like Path object
     """
 
-    def __new__(self, *args, custom: bool = False, start_at_root: bool = True) -> str:
+    def __new__(
+        self, *args, custom: bool = False, start_at_root: bool = True
+    ) -> "Path":
         # "/a/b" -> "/a/b"
         root_in_first_arg = False
         if len(args[0]) > 0:
@@ -106,19 +109,19 @@ class Path(str):
 
         path = str(_Path(*paths))
 
-        if start_at_root == True:
+        if start_at_root is True:
             if path[0] != _os.path.sep:
                 path = _os.path.sep + path
 
         return super(Path, self).__new__(self, path)
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs):
         pass
 
-    def add(self, *args) -> str:
+    def add(self, *args) -> "Path":
         return self.__truediv__(*args)
 
-    def __truediv__(self, *args) -> str:
+    def __truediv__(self, *args) -> "Path":
         """
         Parameters:
             *args: Any class that can be turned into a string
@@ -143,7 +146,7 @@ class Path(str):
 
         files_and_stuff = _os.listdir(path)
 
-        if full == True:
+        if full is True:
             return [Path(path, custom=True) for path in files_and_stuff]
         else:
             return files_and_stuff
@@ -179,7 +182,7 @@ class Path(str):
         """
         copies Path to destination if Path is a file, returns destination as Path
         """
-        assert _os.path.isfile(self.string()) == True
+        assert _os.path.isfile(self.string()) is True
         _shutil.copyfile(self.string(), destination, **kwargs)
         return Path(destination, custom=True)
 
@@ -187,7 +190,7 @@ class Path(str):
         """
         copies Path to destination if Path is a directory, returns destination as Path
         """
-        assert _os.path.isdir(self.string()) == True
+        assert _os.path.isdir(self.string()) is True
         _shutil.copy(self.string(), destination, **kwargs)
         return Path(destination, custom=True)
 
@@ -195,7 +198,7 @@ class Path(str):
         """
         moves Path to destination, returns destination as Path
         """
-        assert _os.path.exists(self.string()) == True
+        assert _os.path.exists(self.string()) is True
         _shutil.move(self.string(), destination, **kwargs)
         return Path(destination, custom=True)
 
@@ -209,7 +212,7 @@ class Path(str):
         """
         removes Path if Path is a directory
         """
-        assert _os.path.isdir(self.string()) == True
+        assert _os.path.isdir(self.string()) is True
         _os.rmdir(self.string(), **kwargs)
 
     def mkfile(self, data: str = "", *args, **kwargs) -> None:
@@ -227,7 +230,7 @@ class Path(str):
         """
         removes Path if Path is a file
         """
-        assert _os.path.isfile(self.string()) == True
+        assert _os.path.isfile(self.string()) is True
         _os.remove(self.string(), **kwargs)
 
     def write(self, *args, **kwargs) -> None:
@@ -246,9 +249,9 @@ class Path(str):
 
         read('rb') returns text of byte file if Path is a file
         """
-        assert _os.path.isfile(self.string()) == True
+        assert _os.path.isfile(self.string()) is True
         with open(self.string(), *args, **kwargs) as file_handler:
-            file_handler.read(data)
+            return file_handler.read()
 
     def readfast(self, *args, **kwargs) -> Any:
         """
@@ -275,7 +278,7 @@ class Path(str):
         >>> for line in Path('/path/to/file').readfast():
         ...     print(next(line))
         """
-        assert _os.path.isfile(self.string()) == True
+        assert _os.path.isfile(self.string()) is True
 
         with open(self.string(), *args, **kwargs) as file_handler:
             for line in file_handler:
@@ -307,7 +310,7 @@ class Path(str):
         if full=True, returns [absolute, path, to, leaf]
         """
         path = _os.path.split(self.string())
-        if full == True:
+        if full is True:
             return self.__str__().split(_os.path.sep)
         else:
             return [Path(path[0], custom=True), path[1]]
@@ -348,20 +351,23 @@ def importfile(path: str, module: Optional[Any] = None) -> Any:
     Returns file functions, classes, and global variables from a python file
     """
     path = Path(path, custom=True)
-    assert _os.path.isfile(path) == True
+    assert _os.path.isfile(path) is True
 
     name = path.leaf().split(".")[0]
 
     spec = importlib.util.spec_from_file_location(name, str(_Path(path)))
     file_handler = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(file_handler)
+    if file_handler:
+        spec.loader.exec_module(file_handler)
+    else:
+        print("was not able to to load modules from", path)
 
-    if module == None:
+    if module is None:
         return file_handler
     else:
         try:
             setattr(module, name, file_handler)
-        except:
+        except Exception as e:
             print("was not able to to load modules from", path)
 
 
@@ -386,21 +392,21 @@ class importdir:
         The imported module.
     """
 
-    def __init__(self, path: str, module: Optional[Any] = None) -> Union[Any, None]:
-        assert _os.path.isdir(path) == True
+    def __init__(self, path: str, module: Optional[Any] = None):
+        assert _os.path.isdir(path) is True
         path = Path(path, custom=True)
 
         python_files = path.find("*.py")
         if len(python_files) == 0:
-            return
+            return None
 
         for python_file in python_files:
             name = python_file.leaf()[:-3]
 
-            if module == None:
+            if module is None:
                 try:
                     setattr(self, name, importfile(python_file))
-                except:
+                except Exception as e:
                     print("was not able to to load modules from", python_file)
             else:
                 importfile(python_file, module)
@@ -506,20 +512,20 @@ def new_import(*args, **kwargs):
 
     try:
         package_name = args[1]["__name__"]
-    except:
+    except Exception as e:
         imported = old_import(*args, **kwargs)
         return imported
 
     try:
         # normal files
         url = args[1]["__file__"]
-    except:
+    except Exception as e:
         # make fake url for virtual environments
         url = filedir / "virtual_environment"
 
     if "." in name:
         if name[0] == ".":
-            # this should not happen
+            # this should never happen. but I'm
             # putting this here in case python changes
             # interpreter behavior in the future
             print(". found at beginning")
