@@ -4,6 +4,8 @@ Made by Jv Kyle Eclarin
 Borrows heavily from pathlib, os, shutil, and glob
 """
 
+from __future__ import annotations
+
 import os as _os
 import sys as _sys
 import site as _site
@@ -13,7 +15,7 @@ import inspect as _inspect
 from glob import glob as _glob
 from pathlib import Path as _Path
 from copy import deepcopy as _deepcopy
-from typing import Optional, Any, List, Tuple
+from typing import Optional, Any, List, Tuple, Union, Sequence
 
 
 # find path of the file doing the importing using inspect
@@ -31,7 +33,7 @@ if filedir is None:
     filedir = str(_Path.cwd())
 
 
-def path_parsing(args: Tuple[Any, ...], paths: List[str]) -> None:
+def path_parsing(args: Tuple[Any, ...], paths: List[Optional[str]]) -> None:
     """
     Handle strings that are
     """
@@ -90,9 +92,7 @@ class Path(str):
     Path/str/int/list will concatenate the string versions and return a str-like Path object
     """
 
-    def __new__(
-        self, *args, custom: bool = False, start_at_root: bool = True
-    ) -> "Path":
+    def __new__(self, *args, custom: bool = False, start_at_root: bool = True) -> Path:
         # "/a/b" -> "/a/b"
         root_in_first_arg = False
         if len(args[0]) > 0:
@@ -118,10 +118,10 @@ class Path(str):
     def __init__(self, *args, **kwargs):
         pass
 
-    def add(self, *args) -> "Path":
+    def add(self, *args) -> Path:
         return self.__truediv__(*args)
 
-    def __truediv__(self, *args) -> "Path":
+    def __truediv__(self, *args) -> Path:
         """
         Parameters:
             *args: Any class that can be turned into a string
@@ -151,7 +151,7 @@ class Path(str):
         else:
             return files_and_stuff
 
-    def find(self, path: str, *args, **kwargs) -> List[str]:
+    def find(self, path: str, *args, **kwargs) -> List[Path]:
         """
         find('*.py') returns [Path, Path, ...] in current Path that have the .py extension
 
@@ -160,7 +160,7 @@ class Path(str):
         files_and_stuff = _glob(_os.path.join(self.__str__(), path), *args, **kwargs)
         return [Path(path, custom=True) for path in files_and_stuff]
 
-    def isfile(self) -> bool:
+    def isfile(self: Path) -> bool:
         """
         returns True if Path is a file
         """
@@ -178,7 +178,7 @@ class Path(str):
         """
         return _os.path.exists(self.string())
 
-    def copyfile(self, destination, **kwargs) -> str:
+    def copyfile(self, destination: str, **kwargs) -> Path:
         """
         copies Path to destination if Path is a file, returns destination as Path
         """
@@ -186,7 +186,7 @@ class Path(str):
         _shutil.copyfile(self.string(), destination, **kwargs)
         return Path(destination, custom=True)
 
-    def copydir(self, destination, **kwargs) -> str:
+    def copydir(self, destination: str, **kwargs) -> Path:
         """
         copies Path to destination if Path is a directory, returns destination as Path
         """
@@ -194,7 +194,7 @@ class Path(str):
         _shutil.copy(self.string(), destination, **kwargs)
         return Path(destination, custom=True)
 
-    def move(self, destination: str, **kwargs) -> str:
+    def move(self, destination: str, **kwargs) -> Path:
         """
         moves Path to destination, returns destination as Path
         """
@@ -284,7 +284,7 @@ class Path(str):
             for line in file_handler:
                 yield line
 
-    def up(self, num: int, *args) -> str:
+    def up(self, num: int, *args) -> Path:
         """
         Return a path that is num times up from the current path.
 
@@ -300,7 +300,7 @@ class Path(str):
         times_up = [".." for i in range(num + 1)]
         return Path(path, *times_up, custom=True)
 
-    def splitpath(self, full: bool = False) -> List[str]:
+    def splitpath(self, full: bool = False) -> Union[List[str], Tuple[Path, str]]:
         """
         /absolute/path/to/leaf -> returns [branch, leaf]
 
@@ -435,13 +435,13 @@ packages = []
 # keep a set of module names
 for url in site_packages:
     url = Path(url, custom=True)
+    if not url.exists():
+        continue
     names = url.ls()
     for name in names:
         if name[-3:] == ".py":
             name = name[:-3]
         packages.append(name)
-
-packages = set(packages)
 
 # sometimes a module is imported that is not in site-packages
 # however, these urls usually use the same first two folders
@@ -465,13 +465,13 @@ def evaluate_name(name: str, url: str, up_dir: int = 1) -> Any:
     If url is not found, will raise an ImportError
     """
     up_dir -= 1
-    up_dir = [".." for i in range(up_dir)]
+    up_list = [".." for i in range(up_dir)]
 
     url = Path(url, custom=True)
     directory = url.branch()
     name = name.split(".")
 
-    final = directory.add(*up_dir, *name)
+    final = directory.add(*up_list, *name)
 
     is_file = _os.path.isfile(final + ".py")
     is_dir = _os.path.isdir(final)
